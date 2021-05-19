@@ -2,7 +2,7 @@ import * as express from 'express';
 import 'reflect-metadata';
 import { config } from 'dotenv';
 import { createConnection } from 'typeorm';
-import { Post } from './entity/Post';
+import { User } from './entity/User';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { Posts } from './resolvers/Posts';
@@ -13,16 +13,14 @@ config();
 const main = async () => {
   // DATABASE CONNECTION
   const connection = await createConnection();
-  const postRepository = connection.getRepository(Post);
 
   const app = express();
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [Posts],
+      resolvers: [User],
       validate: false,
     }),
-    context: { ctx: postRepository },
   });
 
   apolloServer.applyMiddleware({ app });
