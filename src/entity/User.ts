@@ -3,10 +3,11 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  CreateDateColumn,
-  UpdateDateColumn,
   BaseEntity,
+  OneToMany,
 } from 'typeorm';
+import { Expense } from './Expense';
+import { MonthlyExpense } from './MonthlyExpense';
 
 @ObjectType()
 @Entity()
@@ -16,14 +17,6 @@ export class User extends BaseEntity {
   id: number;
 
   @Field(() => String)
-  @CreateDateColumn()
-  createdAt: Date;
-
-  @Field(() => String)
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  @Field(() => String)
   @Column({ unique: true })
   username: string;
 
@@ -31,6 +24,26 @@ export class User extends BaseEntity {
   password: string;
 
   @Field(() => Float)
-  @Column()
+  @Column({ type: 'decimal' })
   salary: number;
+
+  @Field(() => String)
+  @Column({ type: 'timestamp' })
+  timeLeftToNextSalary: string;
+
+  @Field(() => Float)
+  @Column({ type: 'decimal', default: 0 })
+  saving: number;
+
+  @Field(() => Float)
+  @Column({ type: 'decimal', default: 0 })
+  bills: number
+
+  @Field(() => [MonthlyExpense])
+  @OneToMany(() => MonthlyExpense, monthlyExpense => monthlyExpense.user)
+  monthlyExpense: MonthlyExpense[]
+
+  @Field(() => [Expense])
+  @OneToMany(() => Expense, expense => expense.user)
+  expense: Expense[]
 }
