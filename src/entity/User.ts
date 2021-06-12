@@ -22,8 +22,4 @@ export class User extends BaseEntity {
 
   @Column()
   password: string;
-
-  @OneToOne(() => Profile)
-  @JoinColumn()
-  profile: Profile;
 }

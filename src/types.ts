@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction} from "express";
 
 import * as session from 'express-session';
 
@@ -11,4 +11,5 @@ declare module 'express-session' {
 export type RequestResponseExpress = {
     req: Request;
     res: Response;
+    next?: NextFunction;
 }

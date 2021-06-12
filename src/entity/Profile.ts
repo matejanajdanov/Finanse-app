@@ -1,7 +1,16 @@
-import { Field, Float, ObjectType } from "type-graphql";
-import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm"
-import { Expense } from "./Expense";
-import { MonthlyExpense } from "./MonthlyExpense";
+import { Field, Float, ObjectType } from 'type-graphql';
+import {
+  BaseEntity,
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { Expense } from './Expense';
+import { MonthlyExpense } from './MonthlyExpense';
+import { User } from './User';
 
 @ObjectType()
 @Entity()
@@ -15,7 +24,7 @@ export class Profile extends BaseEntity {
 
   @Field(() => String)
   @Column({ type: 'timestamp' })
-  timeLeftToNextSalary: string;
+  timeLeftToNextSalary: Date;
 
   @Field(() => Float)
   @Column({ type: 'decimal', default: 0 })
@@ -26,10 +35,14 @@ export class Profile extends BaseEntity {
   bills: number;
 
   @Field(() => [MonthlyExpense])
-  @OneToMany(() => MonthlyExpense, monthlyExpense => monthlyExpense.user)
-  monthlyExpense: MonthlyExpense[]
+  @OneToMany(() => MonthlyExpense, (monthlyExpense) => monthlyExpense.user)
+  monthlyExpense: MonthlyExpense[];
 
   @Field(() => [Expense])
-  @OneToMany(() => Expense, expense => expense.user)
-  expense: Expense[]
+  @OneToMany(() => Expense, (expense) => expense.user)
+  expense: Expense[];
+
+  @OneToOne(() => User)
+  @JoinColumn()
+  user: User;
 }

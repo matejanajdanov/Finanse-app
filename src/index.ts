@@ -21,6 +21,8 @@ const main = async () => {
 
   let redisStore = connectRedis(session);
   let redisClient = redis.createClient();
+
+  // Create session
   app.use(
     session({
       name: 'qid',
