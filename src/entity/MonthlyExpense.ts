@@ -1,6 +1,6 @@
 import { Field, Float, ID, ObjectType } from "type-graphql";
 import { BaseEntity, Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { User } from "./User";
+import { Profile } from "./Profile";
 
 @ObjectType()
 @Entity()
@@ -13,7 +13,11 @@ export class MonthlyExpense extends BaseEntity {
     @Column({ type:'decimal' })
     totalExpense: number;
 
-    @Field(() => User)
-    @ManyToOne(() => User, user => user.monthlyExpense)
-    user: User; 
+    @Field(() => Date)
+    @Column(({type: 'timestamp'}))
+    month: Date;
+
+    @Field(() => Profile)
+    @ManyToOne(() => Profile, profile => profile.monthlyExpense)
+    profile: Profile; 
 }

@@ -2,7 +2,6 @@ import {
   Arg,
   Ctx,
   Field,
-  ID,
   Mutation,
   ObjectType,
   Resolver,
@@ -31,7 +30,7 @@ export class ProfileResponse {
 export class ProfileResolver {
   @Mutation(() => ProfileResponse)
   async createProfile(
-    @Ctx() { req, res }: RequestResponseExpress,
+    @Ctx() { req }: RequestResponseExpress,
     @Arg('salary') salary: number,
     @Arg('timeLeftToNextSalary') timeLeftToNextSalary: string,
     @Arg('saving', { defaultValue: 0 }) saving?: number,

@@ -4,10 +4,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-  JoinColumn,
-  OneToOne,
 } from 'typeorm';
-import { Profile } from './Profile';
 
 @ObjectType()
 @Entity()

@@ -34,15 +34,13 @@ export class Profile extends BaseEntity {
   @Column({ type: 'decimal', default: 0 })
   bills: number;
 
-  @Field(() => [MonthlyExpense])
-  @OneToMany(() => MonthlyExpense, (monthlyExpense) => monthlyExpense.user)
-  monthlyExpense: MonthlyExpense[];
-
-  @Field(() => [Expense])
-  @OneToMany(() => Expense, (expense) => expense.user)
-  expense: Expense[];
-
   @OneToOne(() => User)
   @JoinColumn()
   user: User;
+
+  @OneToMany(() => MonthlyExpense, monthlyExpense => monthlyExpense.profile)
+  monthlyExpense: MonthlyExpense[];
+
+  @OneToMany(() => Expense, expense => expense.profile)
+  expense: Expense[];
 }

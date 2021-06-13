@@ -1,5 +1,6 @@
 import { Field, Float, ID, ObjectType } from "type-graphql";
 import { BaseEntity, Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Profile } from "./Profile";
 import { User } from "./User";
 
 @ObjectType()
@@ -17,7 +18,7 @@ export class Expense extends BaseEntity {
     @Column({ type:'decimal' })
     moneySpent!: number;
 
-    @Field(() => User)
-    @ManyToOne(() => User, user => user.expense)
-    user: User;
+    @Field(() => Profile)
+    @ManyToOne(() => Profile, profile => profile.expense)
+    profile: Profile;
 }
