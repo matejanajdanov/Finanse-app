@@ -18,7 +18,6 @@ const main = async () => {
   // DATABASE CONNECTION
   const app = express();
   await createConnection();
-
   let redisStore = connectRedis(session);
   let redisClient = redis.createClient();
 

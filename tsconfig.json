@@ -5,7 +5,7 @@
          "es6"
       ],
       "skipLibCheck": true,
-      "target": "es5",
+      "target": "es6",
       "module": "commonjs",
       "moduleResolution": "node",
       "outDir": "./build",

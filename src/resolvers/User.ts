@@ -10,6 +10,7 @@ import {
 import { hash, verify } from 'argon2';
 import { User } from '../entity/User';
 import { RequestResponseExpress } from '../types';
+import { AuthMiddleware } from '../middlewares/authMiddleware';
 
 @ObjectType()
 export class FieldError {
@@ -125,6 +126,7 @@ export class UserResolver {
       };
     }
     const user = await User.findOne({ username: username });
+    console.log(user)
     if (!user) {
       return {
         errors: [

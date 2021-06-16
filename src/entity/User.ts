@@ -1,10 +1,13 @@
-import { Field, ID, ObjectType } from 'type-graphql';
+import { Field, ID, ObjectType } from "type-graphql";
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
   BaseEntity,
-} from 'typeorm';
+  JoinColumn,
+  OneToOne,
+} from "typeorm";
+import { Profile } from "./Profile";
 
 @ObjectType()
 @Entity()
@@ -19,4 +22,9 @@ export class User extends BaseEntity {
 
   @Column()
   password: string;
+
+  @Field(() => Profile, { nullable: true })
+  @OneToOne(() => Profile)
+  @JoinColumn()
+  profile: Profile;
 }

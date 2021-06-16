@@ -3,14 +3,11 @@ import {
   BaseEntity,
   Column,
   Entity,
-  JoinColumn,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Expense } from './Expense';
 import { MonthlyExpense } from './MonthlyExpense';
-import { User } from './User';
 
 @ObjectType()
 @Entity()
@@ -33,10 +30,6 @@ export class Profile extends BaseEntity {
   @Field(() => Float)
   @Column({ type: 'decimal', default: 0 })
   bills: number;
-
-  @OneToOne(() => User)
-  @JoinColumn()
-  user: User;
 
   @OneToMany(() => MonthlyExpense, monthlyExpense => monthlyExpense.profile)
   monthlyExpense: MonthlyExpense[];

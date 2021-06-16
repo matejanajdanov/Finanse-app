@@ -5,10 +5,12 @@ import {
   Mutation,
   ObjectType,
   Resolver,
-} from 'type-graphql';
-import { Profile } from '../entity/Profile';
-import { User } from '../entity/User';
-import { RequestResponseExpress } from '../types';
+  UseMiddleware,
+} from "type-graphql";
+import { Profile } from "../entity/Profile";
+import { User } from "../entity/User";
+import { AuthMiddleware } from "../middlewares/authMiddleware";
+import { RequestResponseExpress } from "../types";
 
 @ObjectType()
 export class ErrorField {
@@ -22,56 +24,87 @@ export class ErrorField {
 export class ProfileResponse {
   @Field(() => Profile, { nullable: true })
   profile?: Profile;
-  @Field(() => Profile, { nullable: true })
+  @Field(() => ErrorField, { nullable: true })
   errorFeilds?: ErrorField[];
 }
 
 @Resolver()
 export class ProfileResolver {
+
+  // CREATE PROFILE
   @Mutation(() => ProfileResponse)
+  @UseMiddleware(AuthMiddleware)
   async createProfile(
     @Ctx() { req }: RequestResponseExpress,
-    @Arg('salary') salary: number,
-    @Arg('timeLeftToNextSalary') timeLeftToNextSalary: string,
-    @Arg('saving', { defaultValue: 0 }) saving?: number,
-    @Arg('bills', { defaultValue: 0 }) bills?: number
+    @Arg("salary") salary: number,
+    @Arg("timeLeftToNextSalary") timeLeftToNextSalary: string,
+    @Arg("saving", { defaultValue: 0 }) saving?: number,
+    @Arg("bills", { defaultValue: 0 }) bills?: number
   ): Promise<ProfileResponse> {
     if (!salary) {
       return {
-        errorFeilds: [{ field: 'salary', message: 'Please enter salary!' }],
+        errorFeilds: [{ field: "salary", message: "Please enter salary!" }],
       };
     } else if (!timeLeftToNextSalary) {
       return {
         errorFeilds: [
           {
-            field: 'timeLeftToNextSalary',
-            message: 'Please provide date so I can do the math!!!',
+            field: "timeLeftToNextSalary",
+            message: "Please provide date so I can do the math!!!",
           },
         ],
       };
     } else if (!timeLeftToNextSalary && !salary) {
       return {
         errorFeilds: [
-          { field: 'salary', message: 'Please enter salary!' },
+          { field: "salary", message: "Please enter salary!" },
           {
-            field: 'timeLeftToNextSalary',
-            message: 'Please provide date so I can do the math!!!',
+            field: "timeLeftToNextSalary",
+            message: "Please provide date so I can do the math!!!",
           },
         ],
       };
     }
-    const user = await User.findOne({ id: req.session.userId });
-    if (!user) {
-      return { errorFeilds: [{ field: 'id', message: 'Not authenticated' }] };
-    }
     const profile = new Profile();
-    profile.user = user;
     profile.salary = salary;
     profile.timeLeftToNextSalary = new Date(timeLeftToNextSalary);
     profile.saving = saving;
     profile.bills = bills;
 
     await profile.save();
+    req.user.profile = profile;
+    req.user.save();
     return { profile };
+  }
+
+  // UPDATE PROFILE
+  @Mutation(() => ProfileResponse)
+  @UseMiddleware(AuthMiddleware)
+  async updateProfile(
+    @Ctx() { req }: RequestResponseExpress,
+    @Arg("salary", { nullable: true }) salary: number,
+    @Arg("timeLeftToNextSalary", { nullable: true })
+    timeLeftToNextSalary: string,
+    @Arg("saving", { nullable: true }) saving: number,
+    @Arg("bills", { nullable: true }) bills: number
+  ): Promise<ProfileResponse> {
+    const profile = await Profile.findOne(req.user.profile);
+    if (salary) {
+      profile.salary = salary;
+    }
+    if (timeLeftToNextSalary) {
+      profile.timeLeftToNextSalary = new Date(timeLeftToNextSalary);
+    }
+    if (saving) {
+      profile.saving = saving;
+    }
+    if (saving) {
+      profile.bills = bills;
+    }
+    await profile.save();
+
+    return {
+      profile,
+    };
   }
 }

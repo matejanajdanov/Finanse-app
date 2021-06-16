@@ -1,10 +1,15 @@
 import { Request, Response, NextFunction} from "express";
+import { User } from "./entity/User";
 
-import * as session from 'express-session';
+declare module 'express' {
+  export interface Request{
+     user?: User
+  }
+}
 
 declare module 'express-session' {
   export interface SessionData {
-    userId: number;
+    userId?: number;
   }
 }
 
