@@ -8,7 +8,6 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { Profile } from "../entity/Profile";
-import { User } from "../entity/User";
 import { AuthMiddleware } from "../middlewares/authMiddleware";
 import { RequestResponseExpress } from "../types";
 
@@ -30,7 +29,6 @@ export class ProfileResponse {
 
 @Resolver()
 export class ProfileResolver {
-
   // CREATE PROFILE
   @Mutation(() => ProfileResponse)
   @UseMiddleware(AuthMiddleware)
@@ -88,7 +86,7 @@ export class ProfileResolver {
     @Arg("saving", { nullable: true }) saving: number,
     @Arg("bills", { nullable: true }) bills: number
   ): Promise<ProfileResponse> {
-    const profile = await Profile.findOne(req.user.profile);
+    const profile = req.user.profile;
     if (salary) {
       profile.salary = salary;
     }
@@ -98,11 +96,10 @@ export class ProfileResolver {
     if (saving) {
       profile.saving = saving;
     }
-    if (saving) {
+    if (bills) {
       profile.bills = bills;
     }
-    await profile.save();
-
+    await Profile.save(profile);
     return {
       profile,
     };

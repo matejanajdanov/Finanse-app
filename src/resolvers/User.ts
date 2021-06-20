@@ -6,16 +6,16 @@ import {
   ObjectType,
   Query,
   Resolver,
-} from 'type-graphql';
-import { hash, verify } from 'argon2';
-import { User } from '../entity/User';
-import { RequestResponseExpress } from '../types';
-import { AuthMiddleware } from '../middlewares/authMiddleware';
+} from "type-graphql";
+import { hash, verify } from "argon2";
+import { User } from "../entity/User";
+import { RequestResponseExpress } from "../types";
+import { AuthMiddleware } from "../middlewares/authMiddleware";
 
 @ObjectType()
 export class FieldError {
   @Field()
-  field: 'username' | 'password';
+  field: "username" | "password";
 
   @Field()
   message: string;
@@ -39,24 +39,24 @@ export class UserResolver {
 
   @Query(() => User, { nullable: true })
   async me(@Ctx() { req, res }: RequestResponseExpress): Promise<User> {
-    const id = req.session.userId;
-    if (!id) return null;
-    return await User.findOne({ id });
+    if (!req.session.userId) return null;
+    const user = await User.findOne({ id: req.session.userId });
+    return user;
   }
 
   @Mutation(() => UserResponse, { nullable: true })
   async register(
-    @Arg('username') username: string,
-    @Arg('password') password: string,
-    @Arg('confirmPassword') confirmPassword: string,
+    @Arg("username") username: string,
+    @Arg("password") password: string,
+    @Arg("confirmPassword") confirmPassword: string,
     @Ctx() { req, res }: RequestResponseExpress
   ): Promise<UserResponse> {
     if (username.length < 4 || username.length > 16) {
       return {
         errors: [
           {
-            field: 'username',
-            message: 'Set username length between 4 and 16 characters',
+            field: "username",
+            message: "Set username length between 4 and 16 characters",
           },
         ],
       };
@@ -69,8 +69,8 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'password',
-            message: 'Set password length between 6 and 16 characters',
+            field: "password",
+            message: "Set password length between 6 and 16 characters",
           },
         ],
       };
@@ -80,8 +80,8 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'username',
-            message: 'Username aleready exists',
+            field: "username",
+            message: "Username aleready exists",
           },
         ],
       };
@@ -101,15 +101,15 @@ export class UserResolver {
 
   @Mutation(() => UserResponse)
   async login(
-    @Arg('username') username: string,
-    @Arg('password') password: string,
+    @Arg("username") username: string,
+    @Arg("password") password: string,
     @Ctx() { req, res }: RequestResponseExpress
   ): Promise<UserResponse> {
     if (username.length < 4 || username.length > 16) {
       return {
         errors: [
           {
-            field: 'username',
+            field: "username",
             message: "Username doesn't exists",
           },
         ],
@@ -119,19 +119,18 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'password',
-            message: 'Password is not correct',
+            field: "password",
+            message: "Password is not correct",
           },
         ],
       };
     }
     const user = await User.findOne({ username: username });
-    console.log(user)
     if (!user) {
       return {
         errors: [
           {
-            field: 'username',
+            field: "username",
             message: "User doesn't exists",
           },
         ],
@@ -142,8 +141,8 @@ export class UserResolver {
       return {
         errors: [
           {
-            field: 'password',
-            message: 'Password is not correct',
+            field: "password",
+            message: "Password is not correct",
           },
         ],
       };
