@@ -1,11 +1,13 @@
 import {
   Arg,
+  createUnionType,
   Ctx,
   Field,
   Mutation,
   ObjectType,
   Query,
   Resolver,
+  UseMiddleware,
 } from "type-graphql";
 import { hash, verify } from "argon2";
 import { User } from "../entity/User";
@@ -13,7 +15,7 @@ import { RequestResponseExpress } from "../types";
 import { AuthMiddleware } from "../middlewares/authMiddleware";
 
 @ObjectType()
-export class FieldError {
+export class ErrorFieldUser {
   @Field()
   field: "username" | "password";
 
@@ -26,8 +28,8 @@ export class UserResponse {
   @Field(() => User, { nullable: true })
   user?: User;
 
-  @Field(() => [FieldError], { nullable: true })
-  errors?: FieldError[];
+  @Field(() => [ErrorFieldUser], { nullable: true })
+  errors?: ErrorFieldUser[];
 }
 
 @Resolver()
@@ -38,7 +40,9 @@ export class UserResolver {
   }
 
   @Query(() => User, { nullable: true })
-  async me(@Ctx() { req, res }: RequestResponseExpress): Promise<User> {
+  async currentUser(
+    @Ctx() { req, res }: RequestResponseExpress
+  ): Promise<User> {
     if (!req.session.userId) return null;
     const user = await User.findOne({ id: req.session.userId });
     return user;
@@ -51,12 +55,12 @@ export class UserResolver {
     @Arg("confirmPassword") confirmPassword: string,
     @Ctx() { req, res }: RequestResponseExpress
   ): Promise<UserResponse> {
-    if (username.length < 4 || username.length > 16) {
+    if (username.length < 6 || username.length > 16) {
       return {
         errors: [
           {
             field: "username",
-            message: "Set username length between 4 and 16 characters",
+            message: "Set username length between 6 and 16 characters",
           },
         ],
       };
@@ -105,12 +109,12 @@ export class UserResolver {
     @Arg("password") password: string,
     @Ctx() { req, res }: RequestResponseExpress
   ): Promise<UserResponse> {
-    if (username.length < 4 || username.length > 16) {
+    if (username.length < 6 || username.length > 16) {
       return {
         errors: [
           {
             field: "username",
-            message: "Username doesn't exists",
+            message: "Set username length 6 char",
           },
         ],
       };
@@ -120,6 +124,10 @@ export class UserResolver {
         errors: [
           {
             field: "password",
+            message: "Password is not correct",
+          },
+          {
+            field: "username",
             message: "Password is not correct",
           },
         ],
@@ -149,5 +157,14 @@ export class UserResolver {
     }
     req.session.userId = user.id;
     return { user };
+  }
+
+  @Mutation(() => Boolean)
+  @UseMiddleware(AuthMiddleware)
+  logout(@Ctx() { req }: RequestResponseExpress): Boolean {
+    req.session.destroy((error) => {
+      console.log(error);
+    });
+    return true;
   }
 }

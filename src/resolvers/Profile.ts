@@ -14,7 +14,7 @@ import { RequestResponseExpress } from "../types";
 @ObjectType()
 export class ErrorField {
   @Field()
-  field: string;
+  field: "salary" | "timeLeftToNextSalary";
   @Field()
   message: string;
 }
@@ -30,8 +30,8 @@ export class ProfileResponse {
 @Resolver()
 export class ProfileResolver {
   // CREATE PROFILE
-  @Mutation(() => ProfileResponse)
   @UseMiddleware(AuthMiddleware)
+  @Mutation(() => ProfileResponse)
   async createProfile(
     @Ctx() { req }: RequestResponseExpress,
     @Arg("salary") salary: number,
