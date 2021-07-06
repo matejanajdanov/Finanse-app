@@ -44,7 +44,10 @@ export class UserResolver {
     @Ctx() { req, res }: RequestResponseExpress
   ): Promise<User> {
     if (!req.session.userId) return null;
-    const user = await User.findOne({ id: req.session.userId });
+    const user = await User.findOne(
+      { id: req.session.userId },
+      { relations: ["profile"] }
+    );
     return user;
   }
 
@@ -133,7 +136,7 @@ export class UserResolver {
         ],
       };
     }
-    const user = await User.findOne({ username: username });
+    const user = await User.findOne({ username }, { relations: ["profile"] });
     if (!user) {
       return {
         errors: [

@@ -23,7 +23,7 @@ export class ErrorField {
 export class ProfileResponse {
   @Field(() => Profile, { nullable: true })
   profile?: Profile;
-  @Field(() => ErrorField, { nullable: true })
+  @Field(() => [ErrorField], { nullable: true })
   errorFeilds?: ErrorField[];
 }
 
