@@ -149,9 +149,19 @@ export class ExpenseResolver {
     }
   }
 
-  // @UseMiddleware(AuthMiddleware)
-  // @Query(() => ExpenseResponse)
-  // getMonthlyExpenses(
-  //   @Arg("month"):
-  // )
+  @UseMiddleware(AuthMiddleware)
+  @Query(() => [Expense])
+  async getMonthlyExpenses(
+    @Arg("date") date: string,
+    @Ctx() { req }: RequestResponseExpress
+  ) {
+    const expenses = await Expense.find({
+      relations: ["profile"],
+      where: { profile: req.user.profile },
+    });
+    const monthlyExpenses = expenses.filter(
+      (expense) => expense.date.toISOString().split("T")[0] === date
+    );
+    return monthlyExpenses;
+  }
 }
