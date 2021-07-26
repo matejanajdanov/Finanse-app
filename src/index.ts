@@ -11,6 +11,7 @@ import * as connectRedis from "connect-redis";
 import * as cors from "cors";
 import { RequestResponseExpress } from "./types";
 import { ProfileResolver } from "./resolvers/Profile";
+import { ExpenseResolver } from "./resolvers/Expense";
 
 // Init env file
 config();
@@ -40,7 +41,7 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [UserResolver, ProfileResolver],
+      resolvers: [UserResolver, ProfileResolver, ExpenseResolver],
       validate: false,
     }),
     context: ({ req, res }: RequestResponseExpress) => ({ req, res }),

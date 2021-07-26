@@ -1,20 +1,22 @@
 import {
+  UseMiddleware,
+  ObjectType,
+  Mutation,
+  Resolver,
+  Field,
   Arg,
   Ctx,
-  Field,
-  Mutation,
-  ObjectType,
-  Resolver,
-  UseMiddleware,
 } from "type-graphql";
-import { Profile } from "../entity/Profile";
+
 import { AuthMiddleware } from "../middlewares/authMiddleware";
 import { RequestResponseExpress } from "../types";
+import { Profile } from "../entity/Profile";
+import { Expense } from "../entity/Expense";
 
 @ObjectType()
-export class ErrorField {
+export class ProfileError {
   @Field()
-  field: "salary" | "timeLeftToNextSalary";
+  field: "salary" | "timeLeftToNextSalary" | "firstName" | "lastName";
   @Field()
   message: string;
 }
@@ -23,8 +25,8 @@ export class ErrorField {
 export class ProfileResponse {
   @Field(() => Profile, { nullable: true })
   profile?: Profile;
-  @Field(() => [ErrorField], { nullable: true })
-  errorFeilds?: ErrorField[];
+  @Field(() => [ProfileError], { nullable: true })
+  errorFeilds?: ProfileError[];
 }
 
 @Resolver()
@@ -34,11 +36,26 @@ export class ProfileResolver {
   @Mutation(() => ProfileResponse)
   async createProfile(
     @Ctx() { req }: RequestResponseExpress,
+    @Arg("firstName") firstName: string,
+    @Arg("lastName") lastName: string,
     @Arg("salary") salary: number,
     @Arg("timeLeftToNextSalary") timeLeftToNextSalary: string,
+    @Arg("currentBalance", { nullable: true }) currentBalance?: number,
     @Arg("saving", { defaultValue: 0 }) saving?: number,
     @Arg("bills", { defaultValue: 0 }) bills?: number
   ): Promise<ProfileResponse> {
+    if (!firstName) {
+      return {
+        errorFeilds: [
+          { field: "firstName", message: "Please enter first name" },
+        ],
+      };
+    }
+    if (!lastName) {
+      return {
+        errorFeilds: [{ field: "lastName", message: "Please enter last name" }],
+      };
+    }
     if (!salary) {
       return {
         errorFeilds: [{ field: "salary", message: "Please enter salary!" }],
@@ -64,6 +81,8 @@ export class ProfileResolver {
       };
     }
     const profile = new Profile();
+    profile.firstName = firstName;
+    profile.lastName = lastName;
     profile.salary = salary;
     profile.timeLeftToNextSalary = new Date(timeLeftToNextSalary);
     profile.saving = saving;
@@ -72,6 +91,16 @@ export class ProfileResolver {
     await profile.save();
     req.user.profile = profile;
     req.user.save();
+
+    // Create expense if use enters current balance
+    if (currentBalance) {
+      const expense = new Expense();
+      expense.date = new Date();
+      expense.moneySpent = salary - currentBalance;
+      expense.purpose = "unknown";
+      expense.profile = profile;
+      expense.save();
+    }
     return { profile };
   }
 
@@ -80,6 +109,8 @@ export class ProfileResolver {
   @UseMiddleware(AuthMiddleware)
   async updateProfile(
     @Ctx() { req }: RequestResponseExpress,
+    @Arg("firstName", { nullable: true }) firstName: string,
+    @Arg("lastName", { nullable: true }) lastName: string,
     @Arg("salary", { nullable: true }) salary: number,
     @Arg("timeLeftToNextSalary", { nullable: true })
     timeLeftToNextSalary: string,
@@ -87,6 +118,12 @@ export class ProfileResolver {
     @Arg("bills", { nullable: true }) bills: number
   ): Promise<ProfileResponse> {
     const profile = req.user.profile;
+    if (firstName) {
+      profile.firstName = firstName;
+    }
+    if (lastName) {
+      profile.lastName = lastName;
+    }
     if (salary) {
       profile.salary = salary;
     }

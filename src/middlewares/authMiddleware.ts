@@ -1,6 +1,6 @@
 import { Field, MiddlewareFn, ObjectType } from "type-graphql";
-import { User } from "../entity/User";
 import { RequestResponseExpress } from "../types";
+import { User } from "../entity/User";
 
 @ObjectType()
 export class ErrorField {

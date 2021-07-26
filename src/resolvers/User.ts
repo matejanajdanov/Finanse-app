@@ -9,10 +9,11 @@ import {
   Resolver,
   UseMiddleware,
 } from "type-graphql";
+
+import { AuthMiddleware } from "../middlewares/authMiddleware";
+import { RequestResponseExpress } from "../types";
 import { hash, verify } from "argon2";
 import { User } from "../entity/User";
-import { RequestResponseExpress } from "../types";
-import { AuthMiddleware } from "../middlewares/authMiddleware";
 
 @ObjectType()
 export class ErrorFieldUser {
