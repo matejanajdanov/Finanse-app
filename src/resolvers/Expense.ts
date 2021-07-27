@@ -1,19 +1,19 @@
 import {
+  UseMiddleware,
+  ObjectType,
+  Mutation,
+  Resolver,
+  Field,
+  Query,
   Arg,
   Ctx,
-  Field,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
-  UseMiddleware,
 } from "type-graphql";
 
 import { AuthMiddleware } from "../middlewares/authMiddleware";
+import { ExpenseOrMessage } from "../objectTypes/expense";
 import { RequestResponseExpress } from "../types";
 import { checkIfEmpty } from "../utils/validator";
 import { Expense } from "../entity/Expense";
-import { ExpenseOrMessage } from "../objectTypes/expense";
 
 @ObjectType()
 export class ExpenseError {
@@ -151,7 +151,7 @@ export class ExpenseResolver {
 
   @UseMiddleware(AuthMiddleware)
   @Query(() => [Expense])
-  async getMonthlyExpenses(
+  async getExpenseByDate(
     @Arg("date") date: string,
     @Ctx() { req }: RequestResponseExpress
   ) {

@@ -26,7 +26,7 @@ export class Profile extends BaseEntity {
   @Column({ type: "decimal" })
   salary: number;
 
-  @Field(() => String)
+  @Field(() => Date)
   @Column({ type: "timestamp" })
   timeLeftToNextSalary: Date;
 

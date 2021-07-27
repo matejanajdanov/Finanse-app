@@ -87,7 +87,6 @@ export class ProfileResolver {
     profile.timeLeftToNextSalary = new Date(timeLeftToNextSalary);
     profile.saving = saving;
     profile.bills = bills;
-
     await profile.save();
     req.user.profile = profile;
     req.user.save();
