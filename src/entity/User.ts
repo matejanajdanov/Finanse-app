@@ -6,7 +6,9 @@ import {
   BaseEntity,
   JoinColumn,
   OneToOne,
+  OneToMany,
 } from "typeorm";
+import { Category } from "./Category";
 import { Profile } from "./Profile";
 
 @ObjectType()
@@ -27,4 +29,8 @@ export class User extends BaseEntity {
   @OneToOne(() => Profile)
   @JoinColumn()
   profile: Profile;
+
+  @Field(() => [Category], { nullable: true })
+  @OneToMany(() => Category, (category) => category.user, { nullable: true })
+  category: Category[];
 }

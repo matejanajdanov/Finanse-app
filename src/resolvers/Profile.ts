@@ -6,12 +6,15 @@ import {
   Field,
   Arg,
   Ctx,
+  Query,
 } from "type-graphql";
 
 import { AuthMiddleware } from "../middlewares/authMiddleware";
+import { ProfileMainExpenses } from "../objectTypes/profile";
 import { RequestResponseExpress } from "../types";
 import { Profile } from "../entity/Profile";
 import { Expense } from "../entity/Expense";
+import { Income } from "../entity/Income";
 
 @ObjectType()
 export class ProfileError {
@@ -31,6 +34,78 @@ export class ProfileResponse {
 
 @Resolver()
 export class ProfileResolver {
+  // GET EXPENSES FROM CATEGORY, HOW MUCH DID I SPENT THIS MONTH, HOW MUCH IS LEFT FOR MONTH
+  // HOW MUCH CAN I SPENT DAILY
+  // {categories:[{category:"kategorija", totalAmount: 300}], todayLeft: 900, monthlyLeft: 40000, spentThisMont: 30000}
+  @UseMiddleware(AuthMiddleware)
+  @Query(() => ProfileMainExpenses)
+  async getMainExpenses(
+    @Ctx() { req }: RequestResponseExpress
+  ): Promise<ProfileMainExpenses> {
+    let categories: { category: string; totalAmount: number }[] = [];
+    let todayLeft: number;
+    let leftForThisMonth: number;
+    let spentThisMonth: number;
+
+    const expenses = await Expense.find({
+      where: { profile: req.user.profile },
+    });
+
+    const incomes = await Income.find({
+      where: { profile: req.user.profile },
+    });
+
+    // fill in all categories
+    expenses.forEach((expense) => {
+      if (expense.category) {
+        if (
+          categories.some(
+            (singleCategory) =>
+              singleCategory.category === expense.category.categoryName
+          )
+        ) {
+          const categoriesIndex = categories.findIndex((category) => {
+            category.category === expense.category.categoryName;
+          });
+          categories[categoriesIndex].totalAmount += expense.moneySpent;
+        } else {
+          categories.push({
+            category: expense.category.categoryName,
+            totalAmount: expense.moneySpent,
+          });
+        }
+      }
+    });
+
+    // spent this month
+    const expensesThisMonth = expenses.filter((expense) => {
+      return (
+        expense.date.getMonth() === new Date().getMonth() &&
+        expense.date.getFullYear() === new Date().getFullYear()
+      );
+    });
+    expensesThisMonth.forEach((expense) => {
+      spentThisMonth += expense.moneySpent;
+    });
+
+    // monthly left
+    let totalExpenses: number;
+    let totalIncome: number;
+
+    expenses.forEach((expense) => {
+      totalExpenses += expense.moneySpent;
+    });
+    incomes.forEach((income) => {
+      totalIncome += income.ammountOfMoney;
+    });
+
+    return {
+      categories,
+      monthlyLeft: 500,
+      spentThisMonth,
+      todayLeft: 200,
+    };
+  }
   // CREATE PROFILE
   @UseMiddleware(AuthMiddleware)
   @Mutation(() => ProfileResponse)

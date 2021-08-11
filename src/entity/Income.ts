@@ -6,13 +6,11 @@ import {
   Column,
   Entity,
 } from "typeorm";
-import { Category } from "./Category";
-
 import { Profile } from "./Profile";
 
 @ObjectType()
 @Entity()
-export class Expense extends BaseEntity {
+export class Income extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
   id!: number;
@@ -21,19 +19,14 @@ export class Expense extends BaseEntity {
   @Column({ nullable: true })
   purpose?: String;
 
-  @Field(() => Category, { nullable: true })
-  @ManyToOne(() => Category, { nullable: true })
-  category?: Category;
-
   @Field(() => Float)
   @Column({ type: "decimal" })
-  moneySpent!: number;
+  ammountOfMoney!: number;
 
   @Field(() => Date)
-  @Column({ type: "timestamp" })
+  @Column({ type: "timestamp", default: new Date() })
   date!: Date;
 
-  @Field(() => Profile)
   @ManyToOne(() => Profile, (profile) => profile.expense)
   profile: Profile;
 }

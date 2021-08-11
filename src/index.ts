@@ -1,17 +1,20 @@
-import "reflect-metadata";
+import { ApolloServer } from "apollo-server-express";
+import * as connectRedis from "connect-redis";
+import { createConnection } from "typeorm";
+import { buildSchema } from "type-graphql";
+import * as session from "express-session";
 import * as express from "express";
 import { config } from "dotenv";
-import { createConnection } from "typeorm";
-import { UserResolver } from "./resolvers/User";
-import { ApolloServer } from "apollo-server-express";
-import { buildSchema } from "type-graphql";
 import * as redis from "redis";
-import * as session from "express-session";
-import * as connectRedis from "connect-redis";
 import * as cors from "cors";
-import { RequestResponseExpress } from "./types";
+import "reflect-metadata";
+
+import { CategoryResolver } from "./resolvers/Category";
 import { ProfileResolver } from "./resolvers/Profile";
 import { ExpenseResolver } from "./resolvers/Expense";
+import { IncomeResolver } from "./resolvers/Income";
+import { RequestResponseExpress } from "./types";
+import { UserResolver } from "./resolvers/User";
 
 // Init env file
 config();
@@ -41,7 +44,13 @@ const main = async () => {
 
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [UserResolver, ProfileResolver, ExpenseResolver],
+      resolvers: [
+        UserResolver,
+        CategoryResolver,
+        ProfileResolver,
+        ExpenseResolver,
+        IncomeResolver,
+      ],
       validate: false,
     }),
     context: ({ req, res }: RequestResponseExpress) => ({ req, res }),

@@ -18,7 +18,10 @@ export const AuthMiddleware: MiddlewareFn<RequestResponseExpress> = async (
     throw new Error("Not authenticated!");
   }
   const id = context.req.session.userId;
-  const user = await User.findOne({ id }, { relations: ["profile"] });
+  const user = await User.findOne(
+    { id },
+    { relations: ["profile", "category"] }
+  );
   if (!user) {
     throw new Error("Not authenticated");
   }

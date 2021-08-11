@@ -13,7 +13,17 @@ import { AuthMiddleware } from "../middlewares/authMiddleware";
 import { ExpenseOrMessage } from "../objectTypes/expense";
 import { RequestResponseExpress } from "../types";
 import { checkIfEmpty } from "../utils/validator";
+import { Category } from "../entity/Category";
 import { Expense } from "../entity/Expense";
+
+@ObjectType()
+export class ExpensesByMonth {
+  @Field()
+  date: number;
+
+  @Field(() => [Expense])
+  expenses: Expense[];
+}
 
 @ObjectType()
 export class ExpenseError {
@@ -49,7 +59,7 @@ export class ExpenseResolver {
     @Ctx() { req }: RequestResponseExpress
   ): Promise<Expense[]> {
     return await Expense.find({
-      relations: ["profile"],
+      relations: ["profile", "category"],
       where: { profile: req.user.profile },
     });
   }
@@ -60,7 +70,10 @@ export class ExpenseResolver {
     @Ctx() { req }: RequestResponseExpress,
     @Arg("id") id: number
   ): Promise<ExpenseResponse> {
-    const expense = await Expense.findOne({ id }, { relations: ["profile"] });
+    const expense = await Expense.findOne(
+      { id },
+      { relations: ["profile", "category"] }
+    );
     if (!expense)
       return { errorFields: [{ message: "Expense doesn't exist aneymore!" }] };
     if (expense.profile.id !== req.user.profile.id)
@@ -71,10 +84,11 @@ export class ExpenseResolver {
   @UseMiddleware(AuthMiddleware)
   @Mutation(() => ExpenseResponse)
   async createExpense(
-    @Arg("purpose") purpose: string,
+    @Ctx() { req }: RequestResponseExpress,
     @Arg("moneySpent") moneySpent: string,
     @Arg("date") date: string,
-    @Ctx() { req }: RequestResponseExpress
+    @Arg("purpose", { defaultValue: "Unknown" }) purpose?: string,
+    @Arg("categoryId", { nullable: true }) categoryId?: number
   ): Promise<ExpenseResponse> {
     // Check if all fields are not empty
     const isValid = checkIfEmpty([purpose, moneySpent, date]);
@@ -88,10 +102,18 @@ export class ExpenseResolver {
       return { errorFields: [{ message: "Please create profile first" }] };
     const newExpense = new Expense();
 
+    if (categoryId) {
+      const newCategory = await Category.findOne(categoryId);
+      if (!newCategory) {
+        return { errorFields: [{ message: "Category doesn't exist!" }] };
+      }
+      newExpense.category = newCategory;
+    }
     newExpense.date = new Date(date);
     newExpense.moneySpent = parseFloat(moneySpent);
     newExpense.purpose = purpose;
     newExpense.profile = profile;
+
     try {
       await newExpense.save();
       return { expense: newExpense };
@@ -128,7 +150,8 @@ export class ExpenseResolver {
     @Arg("id") id: number,
     @Arg("purpose", { nullable: true }) purpose?: string,
     @Arg("moneySpent", { nullable: true }) moneySpent?: string,
-    @Arg("date", { nullable: true }) date?: string
+    @Arg("date", { nullable: true }) date?: string,
+    @Arg("categoryId", { nullable: true }) categoryId?: number
   ): Promise<ExpenseOrMessage> {
     const expense = await Expense.findOne({ id }, { relations: ["profile"] });
     if (!expense) return { message: "Expense doesn't exist!" };
@@ -140,6 +163,19 @@ export class ExpenseResolver {
     }
     if (date) {
       expense.date = new Date(date);
+    }
+    if (categoryId) {
+      console.log(categoryId);
+      const category = await Category.findOne(categoryId, {
+        relations: ["user"],
+      });
+      console.log(category, "CATEGORY");
+      console.log(category.user, "CATEGORY USER");
+      console.log(req.user, "REQ UESR");
+      if (!category || category.user !== req.user) {
+        return { message: "Please choose correct category!" };
+      }
+      expense.category = category;
     }
     try {
       await expense.save();
@@ -156,12 +192,48 @@ export class ExpenseResolver {
     @Ctx() { req }: RequestResponseExpress
   ) {
     const expenses = await Expense.find({
-      relations: ["profile"],
+      relations: ["profile", "category"],
       where: { profile: req.user.profile },
     });
-    const monthlyExpenses = expenses.filter(
+    return expenses.filter(
       (expense) => expense.date.toISOString().split("T")[0] === date
     );
-    return monthlyExpenses;
+  }
+
+  @UseMiddleware(AuthMiddleware)
+  @Query(() => [ExpensesByMonth])
+  async getExpenseByMonth(
+    @Arg("year") year: number,
+    @Arg("month") month: number,
+    @Ctx() { req }: RequestResponseExpress
+  ): Promise<ExpensesByMonth[]> {
+    const expenses = await Expense.find({
+      where: { profile: req.user.profile },
+      order: { date: "DESC" },
+      relations: ["category"],
+    });
+    const monthlyExpenses = expenses.filter(
+      (expense) =>
+        expense.date.getMonth() === month && expense.date.getFullYear() === year
+    );
+    const dates: number[] = [];
+    const byDates: { date: number; expenses: [Expense] }[] = [];
+
+    monthlyExpenses.map((expense) => {
+      if (!dates.includes(expense.date.getDate())) {
+        dates.unshift(expense.date.getDate());
+        return byDates.push({
+          date: expense.date.getDate(),
+          expenses: [expense],
+        });
+      }
+      byDates.forEach((expenseDate) => {
+        if (expense.date.getDate() === expenseDate.date) {
+          expenseDate.expenses.push(expense);
+        }
+      });
+    });
+
+    return byDates;
   }
 }

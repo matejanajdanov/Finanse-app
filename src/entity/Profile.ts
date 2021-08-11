@@ -7,6 +7,7 @@ import {
   Entity,
   Column,
 } from "typeorm";
+import { Income } from "./Income";
 
 @ObjectType()
 @Entity()
@@ -40,4 +41,7 @@ export class Profile extends BaseEntity {
 
   @OneToMany(() => Expense, (expense) => expense.profile)
   expense: Expense[];
+
+  @OneToMany(() => Income, (income) => income.profile)
+  income: Income[];
 }

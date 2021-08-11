@@ -1,13 +1,12 @@
 import {
-  Arg,
-  createUnionType,
-  Ctx,
-  Field,
-  Mutation,
-  ObjectType,
-  Query,
-  Resolver,
   UseMiddleware,
+  ObjectType,
+  Resolver,
+  Mutation,
+  Field,
+  Query,
+  Ctx,
+  Arg,
 } from "type-graphql";
 
 import { AuthMiddleware } from "../middlewares/authMiddleware";
@@ -47,7 +46,7 @@ export class UserResolver {
     if (!req.session.userId) return null;
     const user = await User.findOne(
       { id: req.session.userId },
-      { relations: ["profile"] }
+      { relations: ["profile", "category"] }
     );
     return user;
   }
@@ -137,7 +136,10 @@ export class UserResolver {
         ],
       };
     }
-    const user = await User.findOne({ username }, { relations: ["profile"] });
+    const user = await User.findOne(
+      { username },
+      { relations: ["profile", "category"] }
+    );
     if (!user) {
       return {
         errors: [
