@@ -45,11 +45,11 @@ const main = async () => {
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
       resolvers: [
-        UserResolver,
         CategoryResolver,
         ProfileResolver,
         ExpenseResolver,
         IncomeResolver,
+        UserResolver,
       ],
       validate: false,
     }),

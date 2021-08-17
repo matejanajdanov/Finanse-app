@@ -210,7 +210,7 @@ export class ExpenseResolver {
     const expenses = await Expense.find({
       where: { profile: req.user.profile },
       order: { date: "DESC" },
-      relations: ["category"],
+      relations: ["category", "profile"],
     });
     const monthlyExpenses = expenses.filter(
       (expense) =>
